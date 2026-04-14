@@ -1,0 +1,190 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Price Drop Alert Dashboard — proper Magento admin UI
+ *
+ * @var $block \Panth\PriceDropAlert\Block\Adminhtml\Dashboard
+ */
+
+$trendData = $block->getAlertTrendData();
+$mostWanted = $block->getMostWantedProducts(10);
+$recentAlerts = $block->getRecentAlerts(15);
+$totalAlerts = $block->getTotalAlertsCount();
+$activeAlerts = $block->getActiveAlertsCount();
+$sentAlerts = $block->getSentAlertsCount();
+$cancelledAlerts = $block->getCancelledAlertsCount();
+$todayAlerts = $block->getTodayAlertsCount();
+$avgTarget = $block->getAverageTargetPrice();
+?>
+
+<!-- Totals Bar -->
+<div class="dashboard-totals" style="margin-bottom: 20px;">
+    <ul class="dashboard-totals-list" style="display:flex; flex-wrap:wrap; list-style:none; padding:0; margin:0;">
+        <li class="dashboard-totals-item" style="flex:1; min-width:130px; padding:15px 20px; border:1px solid #d6d6d6; border-right:none; background:#fff;">
+            <span class="dashboard-totals-label" style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:4px;">Total Alerts</span>
+            <strong class="dashboard-totals-value" style="font-size:24px; color:#303030;"><?= $block->escapeHtml((string)$totalAlerts) ?></strong>
+        </li>
+        <li class="dashboard-totals-item" style="flex:1; min-width:130px; padding:15px 20px; border:1px solid #d6d6d6; border-right:none; background:#fff;">
+            <span class="dashboard-totals-label" style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:4px;">Active</span>
+            <strong class="dashboard-totals-value" style="font-size:24px; color:#006bb4;"><?= $block->escapeHtml((string)$activeAlerts) ?></strong>
+        </li>
+        <li class="dashboard-totals-item" style="flex:1; min-width:130px; padding:15px 20px; border:1px solid #d6d6d6; border-right:none; background:#fff;">
+            <span class="dashboard-totals-label" style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:4px;">Sent</span>
+            <strong class="dashboard-totals-value" style="font-size:24px; color:#185b00;"><?= $block->escapeHtml((string)$sentAlerts) ?></strong>
+        </li>
+        <li class="dashboard-totals-item" style="flex:1; min-width:130px; padding:15px 20px; border:1px solid #d6d6d6; border-right:none; background:#fff;">
+            <span class="dashboard-totals-label" style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:4px;">Cancelled</span>
+            <strong class="dashboard-totals-value" style="font-size:24px; color:#e22626;"><?= $block->escapeHtml((string)$cancelledAlerts) ?></strong>
+        </li>
+        <li class="dashboard-totals-item" style="flex:1; min-width:130px; padding:15px 20px; border:1px solid #d6d6d6; border-right:none; background:#fff;">
+            <span class="dashboard-totals-label" style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:4px;">Today</span>
+            <strong class="dashboard-totals-value" style="font-size:24px; color:#eb5202;"><?= $block->escapeHtml((string)$todayAlerts) ?></strong>
+        </li>
+        <li class="dashboard-totals-item" style="flex:1; min-width:130px; padding:15px 20px; border:1px solid #d6d6d6; background:#fff;">
+            <span class="dashboard-totals-label" style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:4px;">Avg Target</span>
+            <strong class="dashboard-totals-value" style="font-size:20px; color:#303030;"><?= $block->escapeHtml($block->formatPrice($avgTarget)) ?></strong>
+        </li>
+    </ul>
+</div>
+
+<!-- Main Content: Chart + Most Wanted -->
+<div class="dashboard-container" style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
+    <!-- Chart -->
+    <div style="flex:2; min-width:400px;">
+        <div class="dashboard-item" style="border:1px solid #d6d6d6; background:#fff;">
+            <div class="dashboard-item-title" style="padding:12px 15px; border-bottom:1px solid #d6d6d6; font-size:14px; font-weight:600; color:#303030;">
+                <?= $block->escapeHtml(__('Alert Trends (7 Days)')) ?>
+            </div>
+            <div class="dashboard-item-content" style="padding:15px;">
+                <canvas id="alertTrendChart" style="max-height:280px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Most Wanted -->
+    <div style="flex:1; min-width:280px;">
+        <div class="dashboard-item" style="border:1px solid #d6d6d6; background:#fff;">
+            <div class="dashboard-item-title" style="padding:12px 15px; border-bottom:1px solid #d6d6d6; font-size:14px; font-weight:600; color:#303030; display:flex; justify-content:space-between; align-items:center;">
+                <?= $block->escapeHtml(__('Most Wanted Products')) ?>
+                <span style="background:#eb5202; color:#fff; padding:2px 8px; font-size:11px; font-weight:700;"><?= $block->escapeHtml((string)count($mostWanted)) ?></span>
+            </div>
+            <div class="dashboard-item-content" style="padding:0;">
+                <?php if (count($mostWanted) > 0): ?>
+                <table class="data-grid" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">#</th>
+                            <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">Product</th>
+                            <th class="data-grid-th" style="padding:8px 12px; font-size:12px; text-align:right;">Alerts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($mostWanted as $i => $item): ?>
+                        <tr class="data-row">
+                            <td style="padding:8px 12px; font-size:13px; font-weight:600;"><?= $block->escapeHtml((string)($i + 1)) ?></td>
+                            <td style="padding:8px 12px;">
+                                <a href="<?= $block->escapeUrl($block->getUrl('catalog/product/edit', ['id' => $item['product_id']])) ?>" style="font-size:13px;">
+                                    <?= $block->escapeHtml($block->getProductName((int)$item['product_id'])) ?> <small style="color:#999;">(#<?= $block->escapeHtml($item['product_id']) ?>)</small>
+                                </a>
+                            </td>
+                            <td style="padding:8px 12px; text-align:right;">
+                                <strong style="font-size:13px;"><?= $block->escapeHtml($item['alert_count']) ?></strong>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php else: ?>
+                <p style="text-align:center; color:#999; padding:30px 15px; margin:0; font-size:13px;"><?= $block->escapeHtml(__('No product alerts yet')) ?></p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Alert Activity -->
+<div class="dashboard-item" style="border:1px solid #d6d6d6; background:#fff;">
+    <div class="dashboard-item-title" style="padding:12px 15px; border-bottom:1px solid #d6d6d6; font-size:14px; font-weight:600; color:#303030; display:flex; justify-content:space-between; align-items:center;">
+        <?= $block->escapeHtml(__('Recent Alert Activity')) ?>
+        <a href="<?= $block->escapeUrl($block->getManageAlertsUrl()) ?>" class="action-default scalable" style="font-size:12px;">
+            <span><?= $block->escapeHtml(__('View All Alerts')) ?></span>
+        </a>
+    </div>
+    <div class="dashboard-item-content" style="padding:0;">
+        <?php if ($recentAlerts->getSize() > 0): ?>
+        <table class="data-grid" style="width:100%;">
+            <thead>
+                <tr>
+                    <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">ID</th>
+                    <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">Email</th>
+                    <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">Product</th>
+                    <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">Target Price</th>
+                    <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">Status</th>
+                    <th class="data-grid-th" style="padding:8px 12px; font-size:12px;">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($recentAlerts as $alert): ?>
+                <tr class="data-row">
+                    <td style="padding:8px 12px; font-size:13px;">
+                        <a href="<?= $block->escapeUrl($block->getViewAlertUrl($alert->getId())) ?>">
+                            #<?= $block->escapeHtml($alert->getId()) ?>
+                        </a>
+                    </td>
+                    <td style="padding:8px 12px; font-size:13px;"><?= $block->escapeHtml($alert->getEmail()) ?></td>
+                    <td style="padding:8px 12px; font-size:13px;">
+                        <a href="<?= $block->escapeUrl($block->getUrl('catalog/product/edit', ['id' => $alert->getProductId()])) ?>"><?= $block->escapeHtml($block->getProductName((int)$alert->getProductId())) ?></a>
+                        <small style="color:#999;">(#<?= $block->escapeHtml($alert->getProductId()) ?>)</small>
+                    </td>
+                    <td style="padding:8px 12px; font-size:13px;"><?= $alert->getTargetPrice() ? $block->escapeHtml($block->formatPrice($alert->getTargetPrice())) : '<em style="color:#999;">Any drop</em>' ?></td>
+                    <td style="padding:8px 12px;">
+                        <?php
+                        $status = (int) $alert->getStatus();
+                        if ($status === \Panth\PriceDropAlert\Model\PriceAlert::STATUS_ACTIVE) {
+                            echo '<span class="grid-severity-notice"><span>' . $block->escapeHtml(__('Active')) . '</span></span>';
+                        } elseif ($status === \Panth\PriceDropAlert\Model\PriceAlert::STATUS_SENT) {
+                            echo '<span class="grid-severity-minor"><span>' . $block->escapeHtml(__('Sent')) . '</span></span>';
+                        } elseif ($status === \Panth\PriceDropAlert\Model\PriceAlert::STATUS_CANCELLED) {
+                            echo '<span class="grid-severity-critical"><span>' . $block->escapeHtml(__('Cancelled')) . '</span></span>';
+                        }
+                        ?>
+                    </td>
+                    <td style="padding:8px 12px; font-size:12px; color:#999;"><?= $block->escapeHtml($block->formatDate($alert->getCreatedAt(), \IntlDateFormatter::SHORT)) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+        <p style="text-align:center; color:#999; padding:30px 15px; margin:0; font-size:13px;"><?= $block->escapeHtml(__('No recent alerts')) ?></p>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+require(['jquery', 'chartjs', 'domReady!'], function($, Chart) {
+    var ctx = document.getElementById('alertTrendChart');
+    if (!ctx) return;
+    var data = <?= /* @noEscape */ json_encode($trendData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(function(d) { return d.date; }),
+            datasets: [{
+                label: 'New Alerts',
+                data: data.map(function(d) { return parseInt(d.count); }),
+                backgroundColor: '#eb5202',
+                borderRadius: 3,
+                barPercentage: 0.6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: '#f0f0f0' } },
+                x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+});
+</script>

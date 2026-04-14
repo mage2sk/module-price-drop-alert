@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Email Templates Configuration
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="pricedropalert_email_email_template" label="Price Drop Alert Notification" file="price_alert.html" type="html" module="Panth_PriceDropAlert" area="frontend"/>
+</config>

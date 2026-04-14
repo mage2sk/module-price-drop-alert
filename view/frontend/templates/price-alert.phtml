@@ -1,0 +1,403 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Price Alert Component
+ *
+ * @var $block \Panth\PriceDropAlert\Block\PriceAlert
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+if (!$block->isEnabled()) {
+    return;
+}
+
+$productId = $block->getProductId();
+if (!$productId) {
+    return;
+}
+
+$currentPrice = $block->getProductPrice();
+$formattedPrice = $block->getFormattedPrice();
+$currencySymbol = $block->getCurrencySymbol();
+$customerEmail = $block->getCustomerEmail();
+$customerName = $block->getCustomerName();
+$isLoggedIn = $block->isCustomerLoggedIn();
+?>
+
+<style>
+    .pa-wrap {
+        --pa-primary: var(--pricedropalert-primary, #0D9488);
+        --pa-from: var(--pricedropalert-btn-from, #0D9488);
+        --pa-to: var(--pricedropalert-btn-to, #14B8A6);
+        --pa-border: var(--pricedropalert-box-border, #E5E5E5);
+        --pa-heading: var(--pricedropalert-heading, #171717);
+        background: #fff;
+        border: 1px solid var(--pa-border);
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin: 2rem 0 1.5rem;
+    }
+    .pa-hdr {
+        background: linear-gradient(135deg, var(--pa-from), var(--pa-to));
+        padding: 0.875rem 1.25rem;
+        display: flex; align-items: center; gap: 0.625rem;
+    }
+    .pa-hdr-icon {
+        width: 2rem; height: 2rem; border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .pa-hdr-icon svg { width: 1rem; height: 1rem; color: #fff; }
+    .pa-hdr h3 { font-size: 0.9375rem; font-weight: 700; color: #fff; margin: 0; line-height: 1.3; }
+    .pa-hdr p { font-size: 0.75rem; color: rgba(255,255,255,0.8); margin: 0.0625rem 0 0; }
+    .pa-body { padding: 1.25rem; }
+    .pa-field { margin-bottom: 0.75rem; }
+    .pa-field label {
+        display: block; font-size: 0.8125rem; font-weight: 600;
+        color: var(--pa-heading); margin-bottom: 0.3125rem;
+    }
+    .pa-field input[type="text"],
+    .pa-field input[type="email"],
+    .pa-field input[type="number"] {
+        width: 100%; padding: 0.625rem 0.75rem;
+        font-size: 0.875rem; border: 1.5px solid var(--pa-border);
+        border-radius: 0.5rem; background: #fff; color: var(--pa-heading);
+        transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        box-sizing: border-box;
+    }
+    .pa-field input:focus {
+        border-color: var(--pa-primary);
+        box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+    }
+    .pa-field input::placeholder { color: #b5b5b5; }
+    .pa-prices {
+        display: grid; grid-template-columns: 1fr; gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    @media (min-width: 640px) {
+        .pa-hdr { padding: 1rem 1.5rem; }
+        .pa-body { padding: 1.5rem; }
+        .pa-prices { grid-template-columns: 1fr 1fr; }
+    }
+    .pa-cur-price {
+        background: #f8fafb;
+        border: 1px solid #e8ecef;
+        border-left: 3px solid var(--pa-primary);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .pa-cur-price .lbl {
+        font-size: 0.625rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.06em; color: #888; margin: 0 0 0.125rem;
+    }
+    .pa-cur-price .val {
+        font-size: 1.375rem; font-weight: 800; color: var(--pa-heading);
+        margin: 0; line-height: 1.15;
+    }
+    .pa-cur-price svg {
+        width: 1.5rem; height: 1.5rem; color: var(--pa-primary);
+        opacity: 0.15; flex-shrink: 0;
+    }
+    .pa-target-wrap { position: relative; }
+    .pa-target-wrap .sym {
+        position: absolute; left: 0.75rem; top: 50%;
+        transform: translateY(-50%); font-weight: 600; color: #888; font-size: 0.875rem;
+        pointer-events: none; z-index: 1; line-height: 1;
+    }
+    .pa-target-wrap input { padding-left: 2.25rem !important; }
+    .pa-hint { font-size: 0.6875rem; color: #aaa; margin: 0.25rem 0 0; }
+    .pa-submit {
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        width: 100%; padding: 0.8125rem 1.5rem;
+        font-size: 0.9375rem; font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--pa-from), var(--pa-to));
+        border: none; border-radius: 0.5rem; cursor: pointer;
+        transition: all 0.25s;
+        box-shadow: 0 3px 12px rgba(13,148,136,0.25);
+    }
+    .pa-submit:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(13,148,136,0.35); }
+    .pa-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .pa-trust {
+        display: flex; align-items: center; justify-content: center;
+        gap: 1rem; margin-top: 0.75rem; padding-top: 0.625rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    .pa-trust span {
+        display: flex; align-items: center; gap: 0.25rem;
+        font-size: 0.6875rem; color: #999;
+    }
+    .pa-trust svg { width: 0.75rem; height: 0.75rem; color: var(--pa-primary); flex-shrink: 0; }
+    @media (max-width: 639px) {
+        .pa-wrap { margin: 0.75rem 0; border-radius: 0.5rem; }
+        .pa-hdr { padding: 0.75rem 1rem; }
+        .pa-hdr h3 { font-size: 0.8125rem; }
+        .pa-hdr p { font-size: 0.6875rem; }
+        .pa-body { padding: 1rem; }
+        .pa-field input[type="text"],
+        .pa-field input[type="email"],
+        .pa-field input[type="number"] { padding: 0.5rem 0.625rem; font-size: 0.8125rem; }
+        .pa-submit { padding: 0.6875rem 1rem; font-size: 0.8125rem; }
+        .pa-prices { gap: 0.5rem; }
+        .pa-cur-price { padding: 0.625rem 0.75rem; }
+        .pa-cur-price .val { font-size: 1.25rem; }
+        .pa-trust { gap: 0.5rem; }
+        .pa-trust span { font-size: 0.625rem; }
+    }
+    /* Subscribed state */
+    .pa-sub-info {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+    }
+    .pa-sub-prices {
+        display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .pa-sub-prices .item {
+        display: flex; align-items: baseline; gap: 0.375rem;
+    }
+    .pa-sub-prices .item .lbl {
+        font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 0.04em; color: #999;
+    }
+    .pa-sub-prices .item .val {
+        font-size: 1.125rem; font-weight: 700; color: var(--pa-heading);
+    }
+    .pa-sub-prices .item .val.target { color: var(--pa-primary); }
+    .pa-sub-prices .arrow { color: #ccc; font-size: 0.875rem; }
+    .pa-remove {
+        font-size: 0.75rem; font-weight: 600; color: #999;
+        background: none; border: 1px solid #e0e0e0; border-radius: 0.375rem;
+        padding: 0.375rem 0.75rem; cursor: pointer; transition: all 0.2s;
+        display: flex; align-items: center; gap: 0.25rem; white-space: nowrap;
+    }
+    .pa-remove:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+    .pa-remove:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pa-remove svg { width: 0.75rem; height: 0.75rem; }
+    /* Notification inside card */
+    .pa-toast {
+        padding: 0.625rem 1rem; font-size: 0.8125rem; font-weight: 500;
+        display: flex; align-items: center; gap: 0.5rem;
+        border-top: 1px solid #e8ecef;
+    }
+    .pa-toast.success { background: #f0fdf4; color: #166534; border-top-color: #bbf7d0; }
+    .pa-toast.error { background: #fef2f2; color: #991b1b; border-top-color: #fecaca; }
+    .pa-toast svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+    .pa-toast .close { margin-left: auto; background: none; border: none; cursor: pointer; color: inherit; opacity: 0.5; padding: 0; }
+    .pa-toast .close:hover { opacity: 1; }
+</style>
+
+<div x-data="priceAlertComponent(<?= (int)$productId ?>, <?= (float)$currentPrice ?>, '<?= $escaper->escapeJs($customerEmail ?: '') ?>', '<?= $escaper->escapeJs($customerName ?: '') ?>', <?= $isLoggedIn ? 'true' : 'false' ?>)"
+     x-init="init()" x-cloak>
+
+    <!-- Loading -->
+    <div x-show="loading" class="pa-wrap" style="text-align:center; padding:2rem;">
+        <div class="animate-spin rounded-full" style="width:1.75rem; height:1.75rem; border:3px solid #e5e5e5; border-top-color:var(--pricedropalert-primary, #0D9488); margin:0 auto 0.5rem;"></div>
+        <p style="font-size:0.75rem; color:#999; margin:0;">Checking alert status...</p>
+    </div>
+
+    <!-- Subscribed — compact inline card -->
+    <div x-show="!loading && subscribed" x-transition class="pa-wrap">
+        <div class="pa-hdr">
+            <div class="pa-hdr-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div>
+                <h3>Price Alert Active</h3>
+            </div>
+        </div>
+        <div class="pa-sub-info">
+            <div class="pa-sub-prices">
+                <div class="item">
+                    <span class="lbl">Now</span>
+                    <span class="val"><?= $escaper->escapeHtml($formattedPrice) ?></span>
+                </div>
+                <template x-if="alertData?.trigger_price">
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <span class="arrow">&rarr;</span>
+                        <div class="item">
+                            <span class="lbl">Target</span>
+                            <span class="val target" x-text="formatPrice(alertData.trigger_price)"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <button @click="unsubscribe()" :disabled="submitting" class="pa-remove">
+                <svg x-show="!submitting" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <div x-show="submitting" class="animate-spin rounded-full" style="width:0.75rem; height:0.75rem; border:1.5px solid #ccc; border-top-color:#666;"></div>
+                <span x-text="submitting ? 'Removing...' : 'Remove'"></span>
+            </button>
+        </div>
+        <!-- Toast inside card -->
+        <div x-show="notification.show" x-transition class="pa-toast" :class="notification.type">
+            <svg x-show="notification.type === 'success'" style="color:#16a34a;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <svg x-show="notification.type === 'error'" style="color:#dc2626;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+            <span x-text="notification.message"></span>
+            <button @click="notification.show = false" class="close"><svg style="width:0.75rem; height:0.75rem;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+        </div>
+    </div>
+
+    <!-- Subscribe Form -->
+    <div x-show="!loading && !subscribed" x-transition class="pa-wrap">
+        <div class="pa-hdr">
+            <div class="pa-hdr-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </div>
+            <div>
+                <h3>Get Price Drop Alerts</h3>
+                <p>Get notified when this product's price drops</p>
+            </div>
+        </div>
+
+        <div class="pa-body">
+            <form @submit.prevent="subscribe()">
+                <!-- Guest: show name/email fields -->
+                <template x-if="!isLoggedIn">
+                    <div>
+                        <div class="pa-field">
+                            <label for="pa-name-<?= (int)$productId ?>">Your Name <span style="color:#ef4444;">*</span></label>
+                            <input type="text" id="pa-name-<?= (int)$productId ?>" x-model="customerName" required placeholder="John Doe">
+                        </div>
+                        <div class="pa-field">
+                            <label for="pa-email-<?= (int)$productId ?>">Email Address <span style="color:#ef4444;">*</span></label>
+                            <input type="email" id="pa-email-<?= (int)$productId ?>" x-model="email" required placeholder="you@example.com">
+                        </div>
+                    </div>
+                </template>
+                <!-- Logged in: show email or greeting -->
+                <template x-if="isLoggedIn">
+                    <div style="margin-bottom:0.75rem;">
+                        <p x-show="email" style="font-size:0.8125rem; color:#666; margin:0;">
+                            Notification will be sent to: <strong x-text="email" style="color:#333;"></strong>
+                        </p>
+                        <p x-show="customerName && !email" style="font-size:0.8125rem; color:#666; margin:0;">
+                            Hi <strong x-text="customerName" style="color:#333;"></strong>, click below to subscribe.
+                        </p>
+                    </div>
+                </template>
+
+                <div class="pa-prices">
+                    <div class="pa-cur-price">
+                        <div>
+                            <p class="lbl">Current Price</p>
+                            <p class="val"><?= $escaper->escapeHtml($formattedPrice) ?></p>
+                        </div>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    </div>
+                    <div class="pa-field" style="margin-bottom:0;">
+                        <label for="pa-target-<?= (int)$productId ?>">Target Price <span style="font-weight:400; color:#bbb;">(Optional)</span></label>
+                        <div class="pa-target-wrap">
+                            <span class="sym"><?= $escaper->escapeHtml($currencySymbol) ?></span>
+                            <input type="number" id="pa-target-<?= (int)$productId ?>" x-model="targetPrice" step="0.01" min="0.01" :max="currentPrice - 0.01" placeholder="<?= $escaper->escapeHtmlAttr(number_format($currentPrice * 0.9, 2)) ?>">
+                        </div>
+                        <p class="pa-hint">Leave empty for any price drop</p>
+                    </div>
+                </div>
+
+                <button type="submit" :disabled="submitting" class="pa-submit">
+                    <div x-show="submitting" class="animate-spin rounded-full" style="width:1rem; height:1rem; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff;"></div>
+                    <svg x-show="!submitting" style="width:1rem; height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span x-text="submitting ? 'Subscribing...' : 'Notify Me When Price Drops'"></span>
+                </button>
+
+                <div class="pa-trust">
+                    <span><svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>Instant Alerts</span>
+                    <span><svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>Unsubscribe Anytime</span>
+                    <span><svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>100% Free</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Toast inside card -->
+        <div x-show="notification.show" x-transition class="pa-toast" :class="notification.type">
+            <svg x-show="notification.type === 'success'" style="color:#16a34a;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <svg x-show="notification.type === 'error'" style="color:#dc2626;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+            <span x-text="notification.message"></span>
+            <button @click="notification.show = false" class="close"><svg style="width:0.75rem; height:0.75rem;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('priceAlertComponent', (productId, currentPrice, customerEmail, customerName, isLoggedIn) => ({
+        productId, currentPrice, email: customerEmail, customerName, isLoggedIn,
+        targetPrice: '', loading: true, subscribed: false, submitting: false,
+        alertData: null, showForm: false,
+        notification: { show: false, message: '', type: 'success' },
+        init() {
+            // Detect logged-in customer via Magento section data (FPC compatible)
+            try {
+                const sections = JSON.parse(localStorage.getItem('mage-cache-storage') || '{}');
+                if (sections.customer && sections.customer.firstname) {
+                    this.isLoggedIn = true;
+                    this.customerName = sections.customer.firstname + (sections.customer.lastname ? ' ' + sections.customer.lastname : '');
+                    if (sections.customer.email) this.email = sections.customer.email;
+                }
+            } catch (e) {}
+
+            // If logged in but no email, fetch via AJAX
+            if (this.isLoggedIn && !this.email) {
+                fetch('/customer/section/load/?sections=customer', { credentials: 'include' })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.customer && data.customer.email) this.email = data.customer.email;
+                        if (data.customer && data.customer.firstname && !this.customerName) {
+                            this.customerName = data.customer.firstname + (data.customer.lastname ? ' ' + data.customer.lastname : '');
+                        }
+                    }).catch(() => {});
+            }
+
+            this.checkStatus();
+        },
+        async checkStatus() {
+            this.loading = true;
+            try {
+                const url = new URL('<?= $escaper->escapeUrl($block->getStatusUrl()) ?>');
+                url.searchParams.append('product_id', this.productId);
+                if (this.email) url.searchParams.append('email', this.email);
+                const data = await (await fetch(url)).json();
+                this.subscribed = data.subscribed || false;
+                this.alertData = data.alert || null;
+                this.showForm = !this.subscribed;
+            } catch (e) { this.showForm = true; } finally { this.loading = false; }
+        },
+        async subscribe() {
+            if (!this.isLoggedIn && (!this.customerName || !this.customerName.trim()))
+                return this.showNotification('Please enter your name', 'error');
+            if (!this.isLoggedIn && (!this.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)))
+                return this.showNotification('Please enter a valid email address', 'error');
+            if (this.targetPrice && parseFloat(this.targetPrice) >= this.currentPrice)
+                return this.showNotification('Target price must be lower than current price', 'error');
+            this.submitting = true;
+            try {
+                const fd = new FormData();
+                fd.append('product_id', this.productId);
+                if (!this.isLoggedIn) { fd.append('email', this.email); fd.append('customer_name', this.customerName); }
+                else if (this.customerName?.trim()) fd.append('customer_name', this.customerName);
+                if (this.targetPrice) fd.append('trigger_price', this.targetPrice);
+                fd.append('form_key', hyva.getFormKey());
+                const data = await (await fetch('<?= $escaper->escapeUrl($block->getSubscribeUrl()) ?>', { method: 'POST', body: fd })).json();
+                if (data.success) { this.showNotification(data.message || 'Subscribed!', 'success'); this.subscribed = true; this.targetPrice = ''; await this.checkStatus(); }
+                else this.showNotification(data.message || 'Failed', 'error');
+            } catch (e) { this.showNotification('An error occurred.', 'error'); } finally { this.submitting = false; }
+        },
+        async unsubscribe() {
+            this.submitting = true;
+            try {
+                const fd = new FormData();
+                fd.append('product_id', this.productId);
+                if (!this.isLoggedIn) fd.append('email', this.email);
+                fd.append('form_key', hyva.getFormKey());
+                const data = await (await fetch('<?= $escaper->escapeUrl($block->getUnsubscribeUrl()) ?>', { method: 'POST', body: fd })).json();
+                if (data.success) { this.showNotification('Unsubscribed', 'success'); this.subscribed = false; this.alertData = null; this.showForm = true; }
+                else this.showNotification(data.message || 'Failed', 'error');
+            } catch (e) { this.showNotification('An error occurred.', 'error'); } finally { this.submitting = false; }
+        },
+        formatPrice(p) { return <?= /* @noEscape */ json_encode($currencySymbol, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?> + parseFloat(p).toFixed(2); },
+        showNotification(message, type) { this.notification = { show: true, message, type }; setTimeout(() => { this.notification.show = false; }, 5000); }
+    }));
+});
+</script>

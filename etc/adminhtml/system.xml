@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="panth" translate="label" sortOrder="400">
+            <label>🚀 Panth Extensions</label>
+        </tab>
+        <section id="pricedropalert" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Price Drop Alert</label>
+            <tab>panth</tab>
+            <resource>Panth_PriceDropAlert::config</resource>
+
+            <!-- General Settings -->
+            <group id="general" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+                <comment><![CDATA[Control the core behavior of the Price Drop Alert feature. When enabled, customers can subscribe to be notified when a product's price drops.]]></comment>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Price Drop Alerts</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>Panth\PriceDropAlert\Model\Config\Backend\Enabled</backend_model>
+                    <config_path>pricedropalert/general/enabled</config_path>
+                    <comment>When enabled, a "Get Price Drop Alerts" form appears on product pages allowing customers to subscribe to price notifications.</comment>
+                </field>
+                <field id="allow_guests" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Guest Subscriptions</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>pricedropalert/general/allow_guests</config_path>
+                    <comment>Allow visitors who are not logged in to subscribe to price alerts by entering their email address. If disabled, only registered customers can subscribe.</comment>
+                </field>
+            </group>
+
+            <!-- Email Settings -->
+            <group id="email" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Email Notifications</label>
+                <comment><![CDATA[Configure how price drop notification emails are sent. The email template can be customized under <strong>Marketing > Email Templates</strong>.]]></comment>
+                <field id="sender" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Sender Identity</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <config_path>pricedropalert/email/sender</config_path>
+                    <comment>Choose which store email identity sends the price drop notifications (e.g., General Contact, Sales Representative).</comment>
+                </field>
+                <field id="email_template" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    <config_path>pricedropalert/email/email_template</config_path>
+                    <comment>Select the transactional email template used for price drop notifications. You can customize this template under Marketing > Email Templates.</comment>
+                </field>
+            </group>
+
+            <!-- Cron Settings -->
+            <group id="cron" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Price Check Schedule</label>
+                <comment><![CDATA[Configure how frequently the system checks for price drops and sends notifications. A shorter interval means faster notifications but more server load.]]></comment>
+                <field id="frequency" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Check Frequency (hours)</label>
+                    <validate>validate-digits</validate>
+                    <config_path>pricedropalert/cron/frequency</config_path>
+                    <comment>How often the system checks product prices and sends notifications to subscribers. Default: 24 hours. Minimum recommended: 1 hour.</comment>
+                </field>
+            </group>
+
+            <!-- Design Note -->
+            <group id="design_note" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Design &amp; Colors</label>
+                <comment><![CDATA[
+                    Colors for the Price Drop Alert component are managed centrally in your theme configuration file.<br/><br/>
+                    <strong>File:</strong> <code>app/design/frontend/Panth/Infotech/web/tailwind/theme-config.json</code><br/>
+                    <strong>Section:</strong> <code>modules.price-drop-alert</code><br/><br/>
+                    After changing colors, run <code>node generate-theme-css.js</code> to regenerate CSS variables.
+                ]]></comment>
+            </group>
+
+        </section>
+    </system>
+</config>

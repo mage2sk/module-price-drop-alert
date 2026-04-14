@@ -1,0 +1,28 @@
+{
+    "panth_price_alert": {
+        "column": {
+            "alert_id": true,
+            "customer_id": true,
+            "product_id": true,
+            "email": true,
+            "customer_name": true,
+            "subscribed_price": true,
+            "target_price": true,
+            "store_id": true,
+            "status": true,
+            "created_at": true,
+            "sent_at": true
+        },
+        "index": {
+            "PANTH_PRICE_ALERT_CUSTOMER_ID": true,
+            "PANTH_PRICE_ALERT_PRODUCT_ID": true,
+            "PANTH_PRICE_ALERT_EMAIL": true,
+            "PANTH_PRICE_ALERT_STATUS": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_PRICE_ALERT_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true,
+            "PANTH_PRICE_ALERT_PRODUCT_ID_CATALOG_PRODUCT_ENTITY_ENTITY_ID": true
+        }
+    }
+}

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="panth_price_alert" resource="default" engine="innodb" comment="Panth Price Alert Table">
+        <column xsi:type="int" name="alert_id" unsigned="true" nullable="false" identity="true"
+                comment="Alert ID"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" identity="false"
+                comment="Customer ID"/>
+        <column xsi:type="int" name="product_id" unsigned="true" nullable="false" identity="false"
+                comment="Product ID"/>
+        <column xsi:type="varchar" name="email" nullable="false" length="255" comment="Email Address"/>
+        <column xsi:type="varchar" name="customer_name" nullable="true" length="255" comment="Customer Name"/>
+        <column xsi:type="decimal" name="subscribed_price" scale="4" precision="12" unsigned="false" nullable="false"
+                comment="Subscribed Price (Price when alert was created)"/>
+        <column xsi:type="decimal" name="target_price" scale="4" precision="12" unsigned="false" nullable="true"
+                comment="Target Price (Trigger price for alert)"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false"
+                comment="Store ID"/>
+        <column xsi:type="smallint" name="status" unsigned="true" nullable="false" identity="false" default="1"
+                comment="Status"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="sent_at" on_update="false" nullable="true"
+                comment="Sent At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="alert_id"/>
+        </constraint>
+
+        <constraint xsi:type="foreign" referenceId="PANTH_PRICE_ALERT_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID"
+                    table="panth_price_alert" column="customer_id" referenceTable="customer_entity"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PANTH_PRICE_ALERT_PRODUCT_ID_CATALOG_PRODUCT_ENTITY_ENTITY_ID"
+                    table="panth_price_alert" column="product_id" referenceTable="catalog_product_entity"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+
+        <index referenceId="PANTH_PRICE_ALERT_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <index referenceId="PANTH_PRICE_ALERT_PRODUCT_ID" indexType="btree">
+            <column name="product_id"/>
+        </index>
+        <index referenceId="PANTH_PRICE_ALERT_EMAIL" indexType="btree">
+            <column name="email"/>
+        </index>
+        <index referenceId="PANTH_PRICE_ALERT_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+    </table>
+</schema>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Global events — triggers immediate price alert check when product price changes
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="catalog_product_save_after">
+        <observer name="panth_pricedropalert_check_alerts_on_price_change"
+                  instance="Panth\PriceDropAlert\Observer\ProductSaveAfterCheckAlerts"/>
+    </event>
+</config>
