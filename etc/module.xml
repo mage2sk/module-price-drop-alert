@@ -2,6 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Panth_PriceDropAlert">
         <sequence>
+            <module name="Panth_Core"/>
             <module name="Magento_Catalog"/>
             <module name="Magento_Customer"/>
             <module name="Magento_Email"/>
