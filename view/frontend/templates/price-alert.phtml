@@ -16,6 +16,10 @@ if (!$productId) {
     return;
 }
 
+if (!$block->hasValidPrice()) {
+    return;
+}
+
 $currentPrice = $block->getProductPrice();
 $formattedPrice = $block->getFormattedPrice();
 $currencySymbol = $block->getCurrencySymbol();

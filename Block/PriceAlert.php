@@ -103,6 +103,18 @@ class PriceAlert extends Template
     }
 
     /**
+     * Check if the product has a valid price to track.
+     * A price drop alert makes no sense when the price is 0 or negative —
+     * there's nothing to drop from.
+     *
+     * @return bool
+     */
+    public function hasValidPrice()
+    {
+        return $this->getProductPrice() > 0;
+    }
+
+    /**
      * Get customer email
      *
      * @return string|null
