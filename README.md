@@ -9,6 +9,8 @@
 
 # Panth Price Drop Notification Alerts for Magento 2 | Panth Infotech
 
+![Panth Price Drop Alert — Magento 2 Extension by Kishan Savaliya](docs/images/hero-banner.png)
+
 [![Magento 2.4.4 - 2.4.8](https://img.shields.io/badge/Magento-2.4.4%20--%202.4.8-orange?logo=magento&logoColor=white)](https://magento.com)
 [![PHP 8.1 - 8.4](https://img.shields.io/badge/PHP-8.1%20--%208.4-blue?logo=php&logoColor=white)](https://php.net)
 [![Hyva + Luma](https://img.shields.io/badge/Themes-Hyva%20%2B%20Luma-14b8a6)]()
