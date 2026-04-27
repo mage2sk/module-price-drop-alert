@@ -69,6 +69,7 @@ Performance • SEO • Adobe Commerce Cloud
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Key Features](#key-features)
 - [How It Works](#how-it-works)
 - [Compatibility](#compatibility)
@@ -81,6 +82,32 @@ Performance • SEO • Adobe Commerce Cloud
 - [Support](#support)
 - [About Panth Infotech](#about-panth-infotech)
 - [Quick Links](#quick-links)
+
+---
+
+## Screenshots
+
+### Storefront — Product page subscribe form
+
+| Guest user | Logged-in user | Alert active (subscribed) |
+|:---:|:---:|:---:|
+| ![Guest subscribe form](docs/images/storefront-guest-form.png) | ![Logged-in subscribe form](docs/images/storefront-loggedin-form.png) | ![Price alert active](docs/images/storefront-alert-active.png) |
+
+### Admin — live demo
+
+![Price Drop Alerts admin demo](docs/images/admin-dashboard-demo.gif)
+
+### Admin — dashboard, grid, configuration
+
+| Dashboard with KPIs & 7-day trend | Manage Price Alerts grid | Configuration |
+|:---:|:---:|:---:|
+| ![Admin dashboard](docs/images/admin-dashboard.png) | ![Manage alerts grid](docs/images/admin-alerts-grid.png) | ![Admin configuration](docs/images/admin-configuration.png) |
+
+### Admin — alert detail & manual send
+
+| View alert (Active) | After clicking *Send Email* (Sent) |
+|:---:|:---:|
+| ![View alert active](docs/images/admin-alert-view.png) | ![Alert sent confirmation](docs/images/admin-alert-sent.png) |
 
 ---
 
