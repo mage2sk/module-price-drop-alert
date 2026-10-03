@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Layout for Above Description Placement
+ * Hyva Compatible - Moves to product.info.details tab container
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <move element="product.price.alert" destination="product.info.details" before="product.info.details.description"/>
+    </body>
+</page>

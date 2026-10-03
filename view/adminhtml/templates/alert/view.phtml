@@ -1,0 +1,129 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Alert View Template - Magento admin styling
+ *
+ * @var $block \Panth\PriceDropAlert\Block\Adminhtml\Alert\View
+ */
+
+$alert = $block->getAlert();
+$product = $block->getProduct();
+$currentPrice = $block->getCurrentProductPrice();
+$targetPrice = (float) $alert->getTargetPrice();
+$subscribedPrice = (float) $alert->getSubscribedPrice();
+$priceReached = $targetPrice > 0 && $currentPrice > 0 && $currentPrice <= $targetPrice;
+?>
+
+<div class="admin__page-section pda-view">
+    <form id="pda-alert-send-form" class="pda-hidden-form" method="post" action="<?= $block->escapeUrl($block->getSendEmailUrl()) ?>"
+          onsubmit="return confirm('<?= $block->escapeJs(__('Send price drop notification email to this customer?')) ?>');">
+        <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>"/>
+    </form>
+    <form id="pda-alert-delete-form" class="pda-hidden-form" method="post" action="<?= $block->escapeUrl($block->getDeleteUrl()) ?>"
+          onsubmit="return confirm('<?= $block->escapeJs(__('Are you sure you want to delete this alert?')) ?>');">
+        <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>"/>
+    </form>
+    <div class="admin__page-section-content">
+        <div class="pda-view-grid">
+
+            <!-- Alert Details -->
+            <fieldset class="admin__fieldset">
+                <legend class="admin__legend"><span><?= $block->escapeHtml(__('Subscription Details')) ?></span></legend>
+                <table class="admin__table-secondary">
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Alert ID')) ?></th>
+                        <td>#<?= $block->escapeHtml($alert->getId()) ?></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Status')) ?></th>
+                        <td>
+                            <?php
+                            $statusMap = [
+                                \Panth\PriceDropAlert\Model\PriceAlert::STATUS_ACTIVE => ['is-pending', __('Active')],
+                                \Panth\PriceDropAlert\Model\PriceAlert::STATUS_SENT => ['is-sent', __('Sent')],
+                                \Panth\PriceDropAlert\Model\PriceAlert::STATUS_CANCELLED => ['is-cancelled', __('Cancelled')],
+                            ];
+                            $status = $statusMap[(int) $alert->getStatus()] ?? ['is-cancelled', __('Unknown')];
+                            ?>
+                            <span class="pda-status <?= $block->escapeHtmlAttr($status[0]) ?>"><?= $block->escapeHtml($status[1]) ?></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Customer Name')) ?></th>
+                        <td><?= $block->escapeHtml($alert->getCustomerName() ?: __('N/A')) ?></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Email')) ?></th>
+                        <td><a href="mailto:<?= $block->escapeHtmlAttr($block->getCustomerEmail()) ?>"><?= $block->escapeHtml($block->getCustomerEmail()) ?></a></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Customer Type')) ?></th>
+                        <td><?= $alert->getCustomerId() ? $block->escapeHtml(__('Registered (ID: %1)', $alert->getCustomerId())) : $block->escapeHtml(__('Guest')) ?></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Subscribed At')) ?></th>
+                        <td><?= $block->escapeHtml($block->formatDate($alert->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)) ?></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Email Sent At')) ?></th>
+                        <td><?= $alert->getSentAt() ? $block->escapeHtml($block->formatDate($alert->getSentAt(), \IntlDateFormatter::MEDIUM, true)) : '<em>' . $block->escapeHtml(__('Not sent yet')) . '</em>' ?></td>
+                    </tr>
+                </table>
+            </fieldset>
+
+            <!-- Product & Price Details -->
+            <fieldset class="admin__fieldset">
+                <legend class="admin__legend"><span><?= $block->escapeHtml(__('Product & Price Details')) ?></span></legend>
+                <?php if ($product): ?>
+                <table class="admin__table-secondary">
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Product')) ?></th>
+                        <td>
+                            <a href="<?= $block->escapeUrl($block->getUrl('catalog/product/edit', ['id' => $product->getId()])) ?>">
+                                <?= $block->escapeHtml($product->getName()) ?>
+                            </a>
+                            <br/><small class="pda-meta">ID: <?= $block->escapeHtml($product->getId()) ?> | SKU: <?= $block->escapeHtml($product->getSku()) ?> | <?= $block->escapeHtml(ucfirst($product->getTypeId())) ?></small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Price When Subscribed')) ?></th>
+                        <td><strong><?= $block->escapeHtml($block->formatPrice($subscribedPrice)) ?></strong></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Target Price')) ?></th>
+                        <td><strong><?= $targetPrice > 0 ? $block->escapeHtml($block->formatPrice($targetPrice)) : $block->escapeHtml(__('Any price drop')) ?></strong></td>
+                    </tr>
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Current Price')) ?></th>
+                        <td><strong class="pda-strong-lg"><?= $block->escapeHtml($block->formatPrice($currentPrice)) ?></strong></td>
+                    </tr>
+                </table>
+
+                <!-- Price Status Message -->
+                <?php if ($targetPrice > 0 && $currentPrice > 0): ?>
+                    <?php if ($priceReached): ?>
+                    <div class="message message-success">
+                        <?= $block->escapeHtml(__('Target price reached! The current price of %1 has met or dropped below the target of %2. You can send the notification email now.', $block->formatPrice($currentPrice), $block->formatPrice($targetPrice))) ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="message message-info">
+                        <?php $diff = $currentPrice - $targetPrice; ?>
+                        <?= $block->escapeHtml(__('Waiting for price drop. The price needs to decrease by %1 to reach the target of %2.', $block->formatPrice($diff), $block->formatPrice($targetPrice))) ?>
+                    </div>
+                    <?php endif; ?>
+                <?php elseif ($subscribedPrice > 0 && $currentPrice > 0 && $currentPrice < $subscribedPrice): ?>
+                    <div class="message message-success">
+                        <?php $savings = $subscribedPrice - $currentPrice; ?>
+                        <?= $block->escapeHtml(__('Price has dropped! The product was %1 when subscribed and is now %2 (saving %3). You can send the notification email now.', $block->formatPrice($subscribedPrice), $block->formatPrice($currentPrice), $block->formatPrice($savings))) ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php else: ?>
+                <div class="message message-warning">
+                    <?= $block->escapeHtml(__('Product not found or has been deleted.')) ?>
+                </div>
+                <?php endif; ?>
+            </fieldset>
+        </div>
+    </div>
+</div>

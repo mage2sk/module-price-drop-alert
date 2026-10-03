@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <pricedropalert>
+            <general>
+                <enabled>1</enabled>
+                <allow_guests>1</allow_guests>
+            </general>
+            <email>
+                <sender>general</sender>
+                <email_template>pricedropalert_email_email_template</email_template>
+            </email>
+            <cron>
+                <frequency>24</frequency>
+            </cron>
+            <security>
+                <rate_limit>10</rate_limit>
+                <rate_limit_window>600</rate_limit_window>
+            </security>
+        </pricedropalert>
+    </default>
+</config>

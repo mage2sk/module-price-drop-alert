@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <head>
+        <css src="Panth_PriceDropAlert::css/admin.css"/>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Panth\PriceDropAlert\Block\Adminhtml\Dashboard" name="pricedropalert_dashboard" template="Panth_PriceDropAlert::dashboard/index.phtml"/>
+        </referenceContainer>
+    </body>
+</page>
