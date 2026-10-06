@@ -1,0 +1,21 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * @var $block \Panth\PriceDropAlert\Block\Adminhtml\Alert\View
+ * @var $escaper \Magento\Framework\Escaper
+ */
+?>
+<button type="button" id="back" class="action-default scalable back"
+        title="<?= $escaper->escapeHtmlAttr(__('Back')) ?>"
+        onclick="setLocation('<?= $escaper->escapeJs($block->getBackUrl()) ?>')">
+    <span><?= $escaper->escapeHtml(__('Back')) ?></span>
+</button>
+<button type="button" id="pda-alert-delete" class="action-default scalable delete" data-form="pda-alert-delete-form"
+        title="<?= $escaper->escapeHtmlAttr(__('Delete')) ?>">
+    <span><?= $escaper->escapeHtml(__('Delete')) ?></span>
+</button>
+<button type="button" id="pda-alert-send" class="action-default scalable save primary" data-form="pda-alert-send-form"
+        title="<?= $escaper->escapeHtmlAttr(__('Send Email')) ?>">
+    <span><?= $escaper->escapeHtml(__('Send Email')) ?></span>
+</button>

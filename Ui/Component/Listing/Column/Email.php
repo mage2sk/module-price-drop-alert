@@ -1,0 +1,43 @@
+<?php
+namespace Panth\PriceDropAlert\Ui\Component\Listing\Column;
+
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponentFactory;
+use Magento\Ui\Component\Listing\Columns\Column;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+
+class Email extends Column
+{
+    protected $customerRepository;
+
+    public function __construct(
+        ContextInterface $context,
+        UiComponentFactory $uiComponentFactory,
+        CustomerRepositoryInterface $customerRepository,
+        array $components = [],
+        array $data = []
+    ) {
+        parent::__construct($context, $uiComponentFactory, $components, $data);
+        $this->customerRepository = $customerRepository;
+    }
+
+    public function prepareDataSource(array $dataSource)
+    {
+        if (isset($dataSource['data']['items'])) {
+            foreach ($dataSource['data']['items'] as &$item) {
+                if (isset($item['customer_id']) && $item['customer_id']) {
+                    try {
+                        $customer = $this->customerRepository->getById($item['customer_id']);
+                        $item['email'] = $customer->getEmail();
+                    } catch (\Exception $e) {
+                        $item['email'] = isset($item['email']) ? $item['email'] : __('N/A');
+                    }
+                } else {
+                    $item['email'] = isset($item['email']) ? $item['email'] : __('Guest');
+                }
+            }
+        }
+
+        return $dataSource;
+    }
+}

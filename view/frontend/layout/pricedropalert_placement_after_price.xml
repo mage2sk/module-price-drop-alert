@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Layout for After Price Placement
+ * Hyva Compatible - Moves to product.info.main container
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Keep block in its default location after product.info.price for Hyva theme -->
+        <!-- The base layout already places it correctly in product.info.main container -->
+    </body>
+</page>

@@ -1,0 +1,447 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Price Alert - Luma version (vanilla JS, no Alpine.js)
+ *
+ * @var $block \Panth\PriceDropAlert\Block\PriceAlert
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+if (!$block->isEnabled()) { return; }
+
+$productId = $block->getProductId();
+if (!$productId) { return; }
+
+if (!$block->hasValidPrice()) { return; }
+
+$currentPrice = $block->getDisplayPrice();
+$formattedPrice = $block->getFormattedPrice();
+$currencySymbol = $block->getCurrencySymbol();
+$customerEmail = $block->getCustomerEmail();
+$customerName = $block->getCustomerName();
+$isLoggedIn = $block->isCustomerLoggedIn();
+$uid = 'pda-' . (int)$productId;
+?>
+<?php
+$allowGuests = $block->getHelper()->isGuestAllowed();
+$loginUrl = $block->getUrl('customer/account/login');
+$checkSvg = '<svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
+$bellPath = 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9';
+$compact = $block->isCompact();
+?>
+
+<style>
+.pa-root { --pa-primary:var(--color-primary, #0D9488); --pa-from:var(--color-primary-fill, #0F766E); --pa-to:var(--color-primary-fill, #0F766E); --pa-muted:var(--color-fg-secondary, #525252); --pa-heading:#171717; }
+.pa-trigger { display:inline-flex!important; align-items:center!important; gap:8px!important; min-height:44px!important; padding:0 4px!important; margin:4px 0 0!important; background:none!important; border:0!important; box-shadow:none!important; border-radius:4px!important; cursor:pointer!important; font-family:inherit!important; font-size:15px!important; font-weight:600!important; line-height:1.3!important; color:var(--pa-from)!important; text-align:left!important; text-decoration:underline!important; text-underline-offset:3px; text-decoration-thickness:1px; }
+.pa-trigger:hover { text-decoration-thickness:2px; }
+.pa-trigger:focus-visible { outline:2px solid var(--pa-from)!important; outline-offset:2px; }
+.pa-trigger svg { width:18px; height:18px; flex-shrink:0; }
+.pa-dialog { padding:0; border:0; border-radius:12px; background:#fff; color:var(--pa-heading); width:calc(100% - 32px); max-width:448px; max-height:calc(100dvh - 32px); overflow:auto; box-shadow:0 20px 50px rgba(0,0,0,0.25); }
+.pa-dialog::backdrop { background:rgba(23,23,23,0.55); }
+.pa-dialog-inner { position:relative; }
+.pa-dialog .pa-wrap { margin:0; border:0; border-radius:0; box-shadow:none; }
+.pa-dialog .pa-hdr { padding-right:56px; }
+.pa-dialog .pa-toast { margin:0 16px 16px; }
+.pa-dialog-close { position:absolute!important; top:6px; right:6px; z-index:2; width:44px!important; height:44px!important; min-height:44px!important; padding:0!important; display:flex!important; align-items:center; justify-content:center; background:none!important; border:0!important; box-shadow:none!important; border-radius:8px!important; color:#fff!important; cursor:pointer; }
+.pa-dialog-close:hover { background:rgba(255,255,255,0.15)!important; }
+.pa-dialog-close:focus-visible { outline:2px solid #fff!important; outline-offset:-2px; }
+.pa-dialog-close svg { width:18px; height:18px; }
+.pa-wrap { --pa-primary:var(--color-primary, #0D9488); --pa-from:var(--color-primary-fill, #0F766E); --pa-to:var(--color-primary-fill, #0F766E); --pa-muted:var(--color-fg-secondary, #525252); --pa-border:#E5E5E5; --pa-heading:#171717; background:#fff; border:1px solid var(--pa-border); border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.05); overflow:hidden; margin:32px 0 24px; font-family:inherit; }
+.pa-hdr { background:linear-gradient(135deg,var(--pa-from),var(--pa-to)); padding:14px 20px; display:flex; align-items:center; gap:10px; }
+.pa-hdr-icon { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.pa-hdr-icon svg { width:16px; height:16px; color:#fff; }
+.pa-hdr h3 { font-size:15px; font-weight:700; color:#fff; margin:0; }
+.pa-hdr h3:focus { outline:none; }
+.pa-hdr p { font-size:13px; color:#fff; margin:1px 0 0; }
+.pa-body { padding:20px; }
+.pa-field { margin-bottom:12px; }
+.pa-field label { display:block; font-size:14px; font-weight:600; color:var(--pa-heading); margin-bottom:5px; }
+.pa-field input { width:100%!important; padding:10px 12px!important; font-size:16px!important; border:1px solid #D4D4D4!important; border-radius:8px!important; background:#fff!important; color:var(--pa-heading)!important; outline:none!important; box-sizing:border-box!important; box-shadow:none!important; font-family:inherit!important; min-height:46px!important; height:46px!important; line-height:1.5!important; }
+.pa-field input::placeholder { color:#737373; }
+.pa-field input:focus { border-color:var(--pa-primary)!important; box-shadow:0 0 0 3px rgba(13,148,136,0.1)!important; }
+.pa-field input[aria-invalid="true"] { border-color:#DC2626!important; }
+.pa-prices { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:16px; }
+.pa-cur-price { background:#f8fafb; border:1px solid #e8ecef; border-left:3px solid var(--pa-primary); border-radius:8px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+.pa-cur-price .lbl { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--pa-muted); margin:0 0 2px; }
+.pa-cur-price .val { font-size:22px; font-weight:800; color:var(--pa-heading); margin:0; line-height:1.15; }
+.pa-target-wrap { position:relative; }
+.pa-target-wrap .sym { position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:600; color:var(--pa-muted); font-size:16px; pointer-events:none; z-index:1; }
+.pa-target-wrap input { padding-left:36px!important; }
+.pa-hint { font-size:12px; color:var(--pa-muted); margin:4px 0 0; }
+.pa-submit { display:flex!important; align-items:center!important; justify-content:center!important; gap:8px!important; width:100%!important; min-height:44px!important; padding:10px 24px!important; font-family:inherit!important; font-size:15px!important; font-weight:600!important; line-height:1.5!important; color:#fff!important; background:var(--pa-from)!important; border:none!important; border-radius:8px!important; cursor:pointer!important; box-shadow:none!important; transition:background-color 0.2s!important; }
+.pa-submit:hover { background:#115E59!important; }
+.pa-submit:disabled { opacity:0.5; cursor:not-allowed!important; transform:none; }
+.pa-submit:focus-visible, .pa-unsub-btn:focus-visible { outline:2px solid var(--pa-from)!important; outline-offset:2px; }
+.pa-trust { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 16px; margin-top:12px; padding-top:10px; border-top:1px solid #f0f0f0; }
+.pa-trust span { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--pa-muted); }
+.pa-trust svg { width:12px; height:12px; color:var(--pa-primary); flex-shrink:0; }
+.pa-toast { padding:10px 16px; font-size:14px; font-weight:500; display:none; align-items:center; gap:8px; border:1px solid #e8ecef; border-radius:8px; margin:-12px 0 24px; font-family:inherit; }
+.pa-toast.visible { display:flex; }
+.pa-toast.success { background:#f0fdf4; color:#166534; border-color:#bbf7d0; }
+.pa-toast.error { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
+.pa-toast svg { width:16px; height:16px; flex-shrink:0; }
+.pa-toast .close { margin-left:auto; background:none!important; border:none!important; box-shadow:none!important; cursor:pointer; color:inherit!important; padding:0!important; width:32px; height:32px; min-height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; flex-shrink:0; }
+.pa-toast .close:focus-visible { outline:2px solid currentColor; outline-offset:1px; }
+.pa-sub-info { padding:12px 20px; display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center; font-size:14px; color:var(--pa-muted); }
+.pa-sub-info strong { color:var(--pa-heading); }
+.pa-sub-info .pa-sub-target strong { color:var(--pa-from); }
+.pa-unsub-btn { font-size:13px!important; font-weight:600!important; color:var(--pa-muted)!important; background:none!important; border:1px solid #d4d4d4!important; border-radius:8px!important; padding:6px 12px!important; cursor:pointer!important; min-height:44px!important; font-family:inherit!important; }
+.pa-unsub-btn:disabled { opacity:0.5; cursor:not-allowed!important; }
+.pa-login { font-size:14px; color:var(--pa-muted); margin:0 0 12px; }
+.pa-login a { color:var(--pa-heading); font-weight:600; text-decoration:underline; }
+@media (max-width:639px) { .pa-wrap { margin:12px 0; } .pa-hdr { padding:12px 16px; } .pa-hdr h3 { font-size:15px; } .pa-body { padding:16px; } .pa-submit { min-height:48px!important; } .pa-trust { gap:4px 12px; } .pa-trust span { font-size:12px; } .pa-toast { margin:0 0 12px; } }
+</style>
+
+<div class="pa-root" id="<?= $escaper->escapeHtmlAttr($uid) ?>-root">
+<?php if ($compact): ?>
+<button type="button" class="pa-trigger" id="<?= $escaper->escapeHtmlAttr($uid) ?>-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?= $escaper->escapeHtmlAttr($uid) ?>-dialog">
+    <svg class="pa-trigger-bell" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= /* @noEscape */ $bellPath ?>"/></svg>
+    <svg class="pa-trigger-check" aria-hidden="true" style="display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+    <span><?= $escaper->escapeHtml(__('Notify me of a price drop')) ?></span>
+</button>
+<dialog class="pa-dialog" id="<?= $escaper->escapeHtmlAttr($uid) ?>-dialog" aria-label="<?= $escaper->escapeHtmlAttr(__('Price drop alert')) ?>">
+<div class="pa-dialog-inner">
+<button type="button" class="pa-dialog-close" id="<?= $escaper->escapeHtmlAttr($uid) ?>-dialog-close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"><svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+<?php endif; ?>
+<div class="pa-wrap" id="<?= $escaper->escapeHtmlAttr($uid) ?>-form">
+    <div class="pa-hdr">
+        <div class="pa-hdr-icon" aria-hidden="true"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= /* @noEscape */ $bellPath ?>"/></svg></div>
+        <div>
+            <h3 tabindex="-1" id="<?= $escaper->escapeHtmlAttr($uid) ?>-form-heading"><?= $escaper->escapeHtml(__('Get Price Drop Alerts')) ?></h3>
+            <p><?= $escaper->escapeHtml(__('Get notified when this product\'s price drops')) ?></p>
+        </div>
+    </div>
+    <div class="pa-body">
+        <form id="<?= $escaper->escapeHtmlAttr($uid) ?>-subscribe-form" novalidate>
+            <?php if (!$allowGuests): ?>
+            <p class="pa-login" id="<?= $escaper->escapeHtmlAttr($uid) ?>-login">
+                <a href="<?= $escaper->escapeUrl($loginUrl) ?>"><?= $escaper->escapeHtml(__('Sign in')) ?></a>
+                <?= $escaper->escapeHtml(__('to get notified when this product\'s price drops.')) ?>
+            </p>
+            <?php else: ?>
+            <div id="<?= $escaper->escapeHtmlAttr($uid) ?>-guest-fields">
+                <div class="pa-field">
+                    <label for="<?= $escaper->escapeHtmlAttr($uid) ?>-name"><?= $escaper->escapeHtml(__('Your Name')) ?> <span aria-hidden="true" style="color:var(--color-error, #DC2626);">*</span></label>
+                    <input type="text" id="<?= $escaper->escapeHtmlAttr($uid) ?>-name" required aria-required="true" autocomplete="name" placeholder="<?= $escaper->escapeHtmlAttr(__('John Doe')) ?>" value="<?= $escaper->escapeHtmlAttr($customerName ?: '') ?>">
+                </div>
+                <div class="pa-field">
+                    <label for="<?= $escaper->escapeHtmlAttr($uid) ?>-email"><?= $escaper->escapeHtml(__('Email Address')) ?> <span aria-hidden="true" style="color:var(--color-error, #DC2626);">*</span></label>
+                    <input type="email" id="<?= $escaper->escapeHtmlAttr($uid) ?>-email" required aria-required="true" autocomplete="email" placeholder="<?= $escaper->escapeHtmlAttr(__('you@example.com')) ?>" value="<?= $escaper->escapeHtmlAttr($customerEmail ?: '') ?>">
+                </div>
+            </div>
+            <?php endif; ?>
+            <p id="<?= $escaper->escapeHtmlAttr($uid) ?>-logged-msg" style="font-size:14px; color:var(--color-fg-secondary, #525252); margin:0 0 12px; display:none;">
+                <?= $escaper->escapeHtml(__('Notification will be sent to:')) ?> <strong id="<?= $escaper->escapeHtmlAttr($uid) ?>-logged-email" style="color:var(--color-fg, #171717);"></strong>
+            </p>
+
+            <div id="<?= $escaper->escapeHtmlAttr($uid) ?>-fields"<?= $allowGuests ? '' : ' style="display:none;"' ?>>
+                <div class="pa-prices">
+                    <div class="pa-cur-price">
+                        <div><p class="lbl"><?= $escaper->escapeHtml(__('Current Price')) ?></p><p class="val"><?= $escaper->escapeHtml($formattedPrice) ?></p></div>
+                    </div>
+                    <div class="pa-field" style="margin-bottom:0;">
+                        <label for="<?= $escaper->escapeHtmlAttr($uid) ?>-target"><?= $escaper->escapeHtml(__('Target Price')) ?> <span style="font-weight:400;color:var(--color-fg-secondary, #525252);">(<?= $escaper->escapeHtml(__('Optional')) ?>)</span></label>
+                        <div class="pa-target-wrap">
+                            <span class="sym" aria-hidden="true"><?= $escaper->escapeHtml($currencySymbol) ?></span>
+                            <input type="number" id="<?= $escaper->escapeHtmlAttr($uid) ?>-target" step="0.01" min="0.01" max="<?= $escaper->escapeHtmlAttr(number_format(max(0.01, (float)$currentPrice - 0.01), 2, '.', '')) ?>" inputmode="decimal" aria-describedby="<?= $escaper->escapeHtmlAttr($uid) ?>-target-hint" placeholder="<?= $escaper->escapeHtmlAttr(number_format($currentPrice * 0.9, 2)) ?>">
+                        </div>
+                        <p class="pa-hint" id="<?= $escaper->escapeHtmlAttr($uid) ?>-target-hint"><?= $escaper->escapeHtml(__('Leave empty for any price drop')) ?></p>
+                    </div>
+                </div>
+
+                <button type="submit" class="pa-submit" id="<?= $escaper->escapeHtmlAttr($uid) ?>-btn">
+                    <svg aria-hidden="true" style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= /* @noEscape */ $bellPath ?>"/></svg>
+                    <span><?= $escaper->escapeHtml(__('Notify Me When Price Drops')) ?></span>
+                </button>
+            </div>
+            <div class="pa-trust">
+                <span><?= /* @noEscape */ $checkSvg ?><?= $escaper->escapeHtml(__('Instant Alerts')) ?></span>
+                <span><?= /* @noEscape */ $checkSvg ?><?= $escaper->escapeHtml(__('Unsubscribe Anytime')) ?></span>
+                <span><?= /* @noEscape */ $checkSvg ?><?= $escaper->escapeHtml(__('100% Free')) ?></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="pa-wrap" id="<?= $escaper->escapeHtmlAttr($uid) ?>-subscribed" style="display:none;">
+    <div class="pa-hdr">
+        <div class="pa-hdr-icon" aria-hidden="true"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></div>
+        <div><h3 tabindex="-1" id="<?= $escaper->escapeHtmlAttr($uid) ?>-active-heading"><?= $escaper->escapeHtml(__('Price Alert Active')) ?></h3></div>
+    </div>
+    <div class="pa-sub-info">
+        <span>
+            <?= $escaper->escapeHtml(__('Now:')) ?> <strong><?= $escaper->escapeHtml($formattedPrice) ?></strong>
+            <span class="pa-sub-target" id="<?= $escaper->escapeHtmlAttr($uid) ?>-sub-target" style="display:none;"> &middot; <?= $escaper->escapeHtml(__('Target:')) ?> <strong></strong></span>
+        </span>
+        <button type="button" class="pa-unsub-btn" id="<?= $escaper->escapeHtmlAttr($uid) ?>-unsub" aria-label="<?= $escaper->escapeHtmlAttr(__('Remove price alert')) ?>"><?= $escaper->escapeHtml(__('Remove')) ?></button>
+    </div>
+</div>
+
+<div role="status" aria-live="polite" aria-atomic="true">
+    <div class="pa-toast" id="<?= $escaper->escapeHtmlAttr($uid) ?>-toast">
+        <svg class="pa-toast-ok" aria-hidden="true" style="color:#16a34a;display:none;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <svg class="pa-toast-err" aria-hidden="true" style="color:#dc2626;display:none;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+        <span class="pa-toast-msg"></span>
+        <button class="close" type="button" aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"><svg aria-hidden="true" style="width:12px;height:12px;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+</div>
+<?php if ($compact): ?>
+</div>
+</dialog>
+<?php endif; ?>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+    var uid = '<?= $escaper->escapeJs($uid) ?>';
+    var productId = <?= (int)$productId ?>;
+    var currentPrice = <?= (float)$currentPrice ?>;
+    var allowGuests = <?= $allowGuests ? 'true' : 'false' ?>;
+    var currencySymbol = <?= /* @noEscape */ json_encode($currencySymbol, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    var statusUrl = '<?= $escaper->escapeJs($block->getStatusUrl()) ?>';
+    var isLoggedIn = false;
+    var customerEmail = '';
+    var $ = function(suffix) { return document.getElementById(uid + suffix); };
+
+    var formEl = $('-form');
+    var subscribedEl = $('-subscribed');
+    var toast = $('-toast');
+    var btn = $('-btn');
+    var form = $('-subscribe-form');
+    var unsubBtn = $('-unsub');
+    var fieldsEl = $('-fields');
+    var toastTimer;
+    var dialog = $('-dialog');
+    var trigger = $('-trigger');
+    var labelOff = '<?= $escaper->escapeJs(__('Notify me of a price drop')) ?>';
+    var labelOn = '<?= $escaper->escapeJs(__('Price drop alert is on')) ?>';
+
+    function setTrigger(on) {
+        if (!trigger) return;
+        trigger.querySelector('span').textContent = on ? labelOn : labelOff;
+        trigger.querySelector('.pa-trigger-bell').style.display = on ? 'none' : '';
+        trigger.querySelector('.pa-trigger-check').style.display = on ? '' : 'none';
+    }
+
+    function focusables() {
+        return Array.prototype.filter.call(
+            dialog.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+            function(el) { return el.getClientRects().length > 0; }
+        );
+    }
+
+    if (dialog && trigger && typeof dialog.showModal === 'function') {
+        trigger.addEventListener('click', function() {
+            if (dialog.open) return;
+            dialog.showModal();
+            trigger.setAttribute('aria-expanded', 'true');
+            var items = focusables().filter(function(el) { return el.className.indexOf('pa-dialog-close') === -1; });
+            var first = items.filter(function(el) { return el.tagName === 'INPUT'; })[0] || items[0];
+            if (first) first.focus();
+        });
+        var afterClose = function() {
+            trigger.setAttribute('aria-expanded', 'false');
+            trigger.focus();
+        };
+        var closeDialog = function() {
+            if (dialog.open) dialog.close();
+            afterClose();
+        };
+        dialog.addEventListener('close', afterClose);
+        dialog.addEventListener('cancel', afterClose);
+        dialog.addEventListener('click', function(e) { if (e.target === dialog) closeDialog(); });
+        $('-dialog-close').addEventListener('click', closeDialog);
+        dialog.addEventListener('keydown', function(e) {
+            if (e.key !== 'Tab') return;
+            var items = focusables();
+            if (!items.length) return;
+            var first = items[0];
+            var last = items[items.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
+    }
+
+    try {
+        var sections = JSON.parse(localStorage.getItem('mage-cache-storage') || '{}');
+        if (sections.customer && sections.customer.firstname) {
+            isLoggedIn = true;
+            customerEmail = sections.customer.email || '';
+            var guestFields = $('-guest-fields');
+            var loginEl = $('-login');
+            var loggedMsg = $('-logged-msg');
+            if (guestFields) { guestFields.style.display = 'none'; }
+            if (loginEl) { loginEl.style.display = 'none'; }
+            if (fieldsEl) { fieldsEl.style.display = ''; }
+            if (loggedMsg && customerEmail) {
+                loggedMsg.style.display = '';
+                $('-logged-email').textContent = customerEmail;
+            }
+        }
+    } catch (e) {}
+
+    function getFormKey() {
+        var m = document.cookie.match(/form_key=([^;]+)/);
+        if (m) return m[1];
+        var el = document.querySelector('input[name="form_key"]');
+        return el ? el.value : '';
+    }
+
+    function showToast(msg, type) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toast.className = 'pa-toast visible ' + type;
+        toast.querySelector('.pa-toast-msg').textContent = msg;
+        toast.querySelector('.pa-toast-ok').style.display = type === 'success' ? '' : 'none';
+        toast.querySelector('.pa-toast-err').style.display = type === 'error' ? '' : 'none';
+        toastTimer = setTimeout(function() { toast.className = 'pa-toast'; }, 5000);
+    }
+
+    function focusLater(el) {
+        if (el) setTimeout(function() { el.focus(); }, 50);
+    }
+
+    function setTarget(value) {
+        var t = $('-sub-target');
+        if (!t) return;
+        if (value) {
+            t.querySelector('strong').textContent = currencySymbol + parseFloat(value).toFixed(2);
+            t.style.display = '';
+        } else {
+            t.style.display = 'none';
+        }
+    }
+
+    function showSubscribed(target) {
+        setTarget(target);
+        formEl.style.display = 'none';
+        subscribedEl.style.display = '';
+        setTrigger(true);
+    }
+
+    function showForm() {
+        subscribedEl.style.display = 'none';
+        formEl.style.display = '';
+        setTrigger(false);
+    }
+
+    function fieldError(input, msg) {
+        if (input) {
+            input.setAttribute('aria-invalid', 'true');
+            input.focus();
+        }
+        showToast(msg, 'error');
+    }
+
+    function clearInvalid() {
+        form.querySelectorAll('[aria-invalid]').forEach(function(el) { el.removeAttribute('aria-invalid'); });
+    }
+
+    function post(url, fd, onDone) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        xhr.withCredentials = true;
+        xhr.onload = function() {
+            var data = null;
+            try { data = JSON.parse(xhr.responseText); } catch (ex) {}
+            onDone(data);
+        };
+        xhr.onerror = function() { onDone(null); };
+        xhr.send(fd);
+    }
+
+    function resetBtn() {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = '<?= $escaper->escapeJs(__('Notify Me When Price Drops')) ?>';
+    }
+
+    toast.querySelector('.close').addEventListener('click', function() { toast.className = 'pa-toast'; });
+
+    (function checkStatus() {
+        var xhr = new XMLHttpRequest();
+        var url = statusUrl + (statusUrl.indexOf('?') === -1 ? '?' : '&') + 'product_id=' + encodeURIComponent(productId);
+        xhr.open('GET', url);
+        xhr.withCredentials = true;
+        xhr.onload = function() {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data && data.subscribed) {
+                    showSubscribed(data.alert ? data.alert.trigger_price : null);
+                }
+            } catch (ex) {}
+        };
+        xhr.send();
+    })();
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!isLoggedIn && !allowGuests) return;
+        clearInvalid();
+        var fd = new FormData();
+        fd.append('product_id', productId);
+        fd.append('form_key', getFormKey());
+        if (!isLoggedIn) {
+            var name = $('-name');
+            var email = $('-email');
+            if (!name || !name.value.trim()) {
+                return fieldError(name, '<?= $escaper->escapeJs(__('Please enter your name')) ?>');
+            }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+                return fieldError(email, '<?= $escaper->escapeJs(__('Please enter a valid email address')) ?>');
+            }
+            fd.append('customer_name', name.value);
+            fd.append('email', email.value.trim());
+        }
+        var target = $('-target');
+        var targetValue = target && target.value !== '' ? parseFloat(target.value) : null;
+        if (target && target.value !== '' && !(targetValue > 0)) {
+            return fieldError(target, '<?= $escaper->escapeJs(__('Please enter a valid target price.')) ?>');
+        }
+        if (targetValue !== null && targetValue >= currentPrice) {
+            return fieldError(target, '<?= $escaper->escapeJs(__('Target price must be lower than current price')) ?>');
+        }
+        if (targetValue !== null) fd.append('target_price', target.value);
+
+        btn.disabled = true;
+        btn.querySelector('span').textContent = '<?= $escaper->escapeJs(__('Subscribing...')) ?>';
+
+        post('<?= $escaper->escapeJs($block->getSubscribeUrl()) ?>', fd, function(data) {
+            resetBtn();
+            if (data && data.success) {
+                showSubscribed(targetValue);
+                if (target) target.value = '';
+                showToast(data.message || '<?= $escaper->escapeJs(__('Price alert set!')) ?>', 'success');
+                focusLater($('-active-heading'));
+            } else {
+                showToast((data && data.message) || '<?= $escaper->escapeJs(__('An error occurred.')) ?>', 'error');
+            }
+        });
+    });
+
+    if (unsubBtn) {
+        unsubBtn.addEventListener('click', function() {
+            var fd = new FormData();
+            fd.append('product_id', productId);
+            fd.append('form_key', getFormKey());
+            unsubBtn.textContent = '<?= $escaper->escapeJs(__('Removing...')) ?>';
+            unsubBtn.disabled = true;
+            post('<?= $escaper->escapeJs($block->getUnsubscribeUrl()) ?>', fd, function(data) {
+                unsubBtn.textContent = '<?= $escaper->escapeJs(__('Remove')) ?>';
+                unsubBtn.disabled = false;
+                if (data && data.success) {
+                    showForm();
+                    showToast(data.message || '<?= $escaper->escapeJs(__('Unsubscribed')) ?>', 'success');
+                    focusLater($('-form-heading'));
+                } else {
+                    showToast((data && data.message) || '<?= $escaper->escapeJs(__('An error occurred.')) ?>', 'error');
+                }
+            });
+        });
+    }
+});
+</script>

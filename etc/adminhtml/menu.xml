@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Panth_PriceDropAlert::group"
+             title="Price Drop Alerts"
+             module="Panth_PriceDropAlert"
+             sortOrder="80"
+             parent="Panth_Core::panth_extensions"
+             resource="Panth_PriceDropAlert::dashboard"/>
+        <add id="Panth_PriceDropAlert::dashboard_menu"
+             title="Dashboard"
+             module="Panth_PriceDropAlert"
+             sortOrder="10"
+             parent="Panth_PriceDropAlert::group"
+             action="pricedropalert/dashboard/index"
+             resource="Panth_PriceDropAlert::dashboard"/>
+        <add id="Panth_PriceDropAlert::alerts_menu"
+             title="Manage Alerts"
+             module="Panth_PriceDropAlert"
+             sortOrder="20"
+             parent="Panth_PriceDropAlert::group"
+             action="pricedropalert/alert/index"
+             resource="Panth_PriceDropAlert::alerts"/>
+        <add id="Panth_PriceDropAlert::settings"
+             title="Configuration"
+             module="Panth_PriceDropAlert"
+             sortOrder="99"
+             parent="Panth_PriceDropAlert::group"
+             action="adminhtml/system_config/edit/section/pricedropalert"
+             resource="Panth_PriceDropAlert::config"/>
+    </menu>
+</config>

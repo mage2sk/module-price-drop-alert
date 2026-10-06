@@ -1,0 +1,164 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * @var $block \Panth\PriceDropAlert\Block\Adminhtml\Dashboard
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+use Panth\PriceDropAlert\Model\PriceAlert;
+
+$trendData = $block->getAlertTrendData();
+$mostWanted = $block->getMostWantedProducts(10);
+$recentAlerts = $block->getRecentAlerts(15);
+$statusMap = [
+    PriceAlert::STATUS_ACTIVE => ['is-pending', __('Active')],
+    PriceAlert::STATUS_SENT => ['is-sent', __('Sent')],
+    PriceAlert::STATUS_CANCELLED => ['is-cancelled', __('Cancelled')],
+];
+$kpis = [
+    [__('Total Alerts'), (string)$block->getTotalAlertsCount(), ''],
+    [__('Active'), (string)$block->getActiveAlertsCount(), 'is-blue'],
+    [__('Sent'), (string)$block->getSentAlertsCount(), 'is-green'],
+    [__('Cancelled'), (string)$block->getCancelledAlertsCount(), 'is-red'],
+    [__('Today'), (string)$block->getTodayAlertsCount(), 'is-orange'],
+    [__('Avg Target'), (string)$block->formatPrice($block->getAverageTargetPrice()), ''],
+];
+?>
+<div class="pda-dash">
+    <ul class="pda-kpis">
+        <?php foreach ($kpis as $kpi): ?>
+        <li class="pda-kpi">
+            <span class="pda-kpi-label"><?= $escaper->escapeHtml($kpi[0]) ?></span>
+            <strong class="pda-kpi-value <?= $escaper->escapeHtmlAttr($kpi[2]) ?>"><?= $escaper->escapeHtml($kpi[1]) ?></strong>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+
+    <div class="pda-row">
+        <div class="pda-col-main">
+            <div class="pda-panel">
+                <div class="pda-panel-title"><?= $escaper->escapeHtml(__('Alert Trends (7 Days)')) ?></div>
+                <div class="pda-panel-body is-padded">
+                    <div class="pda-chart"><canvas id="alertTrendChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="pda-col-side">
+            <div class="pda-panel">
+                <div class="pda-panel-title">
+                    <span><?= $escaper->escapeHtml(__('Most Wanted Products')) ?></span>
+                    <span class="pda-count"><?= $escaper->escapeHtml((string)count($mostWanted)) ?></span>
+                </div>
+                <div class="pda-panel-body">
+                    <?php if (count($mostWanted) > 0): ?>
+                    <table class="data-grid">
+                        <thead>
+                            <tr>
+                                <th class="data-grid-th">#</th>
+                                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Product')) ?></th>
+                                <th class="data-grid-th a-right"><?= $escaper->escapeHtml(__('Alerts')) ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($mostWanted as $i => $item): ?>
+                            <tr class="data-row">
+                                <td><strong><?= $escaper->escapeHtml((string)($i + 1)) ?></strong></td>
+                                <td>
+                                    <a href="<?= $escaper->escapeUrl($block->getUrl('catalog/product/edit', ['id' => $item['product_id']])) ?>"><?= $escaper->escapeHtml($block->getProductName((int)$item['product_id'])) ?></a>
+                                    <span class="pda-meta">(#<?= $escaper->escapeHtml($item['product_id']) ?>)</span>
+                                </td>
+                                <td class="a-right"><strong><?= $escaper->escapeHtml($item['alert_count']) ?></strong></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php else: ?>
+                    <p class="pda-empty"><?= $escaper->escapeHtml(__('No product alerts yet')) ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pda-panel">
+        <div class="pda-panel-title">
+            <span><?= $escaper->escapeHtml(__('Recent Alert Activity')) ?></span>
+            <a href="<?= $escaper->escapeUrl($block->getManageAlertsUrl()) ?>" class="action-default scalable">
+                <span><?= $escaper->escapeHtml(__('View All Alerts')) ?></span>
+            </a>
+        </div>
+        <div class="pda-panel-body">
+            <?php if ($recentAlerts->getSize() > 0): ?>
+            <table class="data-grid">
+                <thead>
+                    <tr>
+                        <th class="data-grid-th"><?= $escaper->escapeHtml(__('ID')) ?></th>
+                        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Email')) ?></th>
+                        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Product')) ?></th>
+                        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Target Price')) ?></th>
+                        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Created')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentAlerts as $alert): ?>
+                        <?php $status = $statusMap[(int)$alert->getStatus()] ?? ['is-cancelled', __('Unknown')]; ?>
+                    <tr class="data-row">
+                        <td><a href="<?= $escaper->escapeUrl($block->getViewAlertUrl($alert->getId())) ?>">#<?= $escaper->escapeHtml($alert->getId()) ?></a></td>
+                        <td><?= $escaper->escapeHtml($alert->getEmail()) ?></td>
+                        <td>
+                            <a href="<?= $escaper->escapeUrl($block->getUrl('catalog/product/edit', ['id' => $alert->getProductId()])) ?>"><?= $escaper->escapeHtml($block->getProductName((int)$alert->getProductId())) ?></a>
+                            <span class="pda-meta">(#<?= $escaper->escapeHtml($alert->getProductId()) ?>)</span>
+                        </td>
+                        <td>
+                            <?php if ($alert->getTargetPrice()): ?>
+                                <?= $escaper->escapeHtml($block->formatPrice($alert->getTargetPrice())) ?>
+                            <?php else: ?>
+                                <em class="pda-meta"><?= $escaper->escapeHtml(__('Any drop')) ?></em>
+                            <?php endif; ?>
+                        </td>
+                        <td><span class="pda-status <?= $escaper->escapeHtmlAttr($status[0]) ?>"><?= $escaper->escapeHtml($status[1]) ?></span></td>
+                        <td class="pda-meta"><?= $escaper->escapeHtml($block->formatDate($alert->getCreatedAt(), \IntlDateFormatter::SHORT)) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php else: ?>
+            <p class="pda-empty"><?= $escaper->escapeHtml(__('No recent alerts')) ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<script>
+require(['jquery', 'Panth_PriceDropAlert/js/lib/chart.umd.min', 'domReady!'], function ($, Chart) {
+    var ctx = document.getElementById('alertTrendChart');
+    if (!ctx) {
+        return;
+    }
+    var data = <?= /* @noEscape */ json_encode($trendData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(function (d) { return d.date; }),
+            datasets: [{
+                label: '<?= $escaper->escapeJs(__('New Alerts')) ?>',
+                data: data.map(function (d) { return parseInt(d.count, 10); }),
+                backgroundColor: '#eb5202',
+                borderRadius: 3,
+                maxBarThickness: 48
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0, color: '#41362f', font: { size: 12 } }, grid: { color: '#f0f0f0' } },
+                x: { ticks: { color: '#41362f', font: { size: 12 } }, grid: { display: false } }
+            }
+        }
+    });
+});
+</script>

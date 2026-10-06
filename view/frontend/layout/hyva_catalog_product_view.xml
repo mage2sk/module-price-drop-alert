@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Switch to Alpine template on Hyva -->
+        <referenceBlock name="product.price.alert"
+                        template="Panth_PriceDropAlert::price-alert.phtml"/>
+        <!-- Move back to product.info.additional for Hyva (Luma uses product.info.main) -->
+        <move element="product.price.alert" destination="product.info.additional" after="-"/>
+    </body>
+</page>

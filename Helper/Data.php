@@ -1,0 +1,81 @@
+<?php
+namespace Panth\PriceDropAlert\Helper;
+
+use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Store\Model\ScopeInterface;
+use Panth\PriceDropAlert\Model\Config\Source\DisplayStyle;
+
+class Data extends AbstractHelper
+{
+    const XML_PATH_ENABLED = 'pricedropalert/general/enabled';
+    const XML_PATH_ALLOW_GUESTS = 'pricedropalert/general/allow_guests';
+    const XML_PATH_EMAIL_SENDER = 'pricedropalert/email/sender';
+    const XML_PATH_EMAIL_TEMPLATE = 'pricedropalert/email/email_template';
+    const XML_PATH_CRON_FREQUENCY = 'pricedropalert/cron/frequency';
+    const XML_PATH_DISPLAY_STYLE = 'pricedropalert/general/display_style';
+
+    public function isEnabled($storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isGuestAllowed($storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_ALLOW_GUESTS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getEmailSender($storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_EMAIL_SENDER,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'general';
+    }
+
+    public function getEmailTemplate($storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_EMAIL_TEMPLATE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'pricedropalert_email_email_template';
+    }
+
+    public function getCronFrequency($storeId = null): int
+    {
+        return (int) $this->scopeConfig->getValue(
+            self::XML_PATH_CRON_FREQUENCY,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 24;
+    }
+
+    public function getDisplayStyle($storeId = null): string
+    {
+        $value = (string) $this->scopeConfig->getValue(
+            self::XML_PATH_DISPLAY_STYLE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        return $value === DisplayStyle::INLINE ? DisplayStyle::INLINE : DisplayStyle::COMPACT;
+    }
+
+    public function isCompactStyle($storeId = null): bool
+    {
+        return $this->getDisplayStyle($storeId) === DisplayStyle::COMPACT;
+    }
+
+    public function isPriceAlertEnabled($storeId = null): bool
+    {
+        return $this->isEnabled($storeId);
+    }
+}
