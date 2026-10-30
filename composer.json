@@ -2,8 +2,8 @@
     "name": "mage2kishan/module-price-drop-alert",
     "description": "Price Drop Alert module for Magento 2 - Allows customers to subscribe to price drop notifications on products.",
     "type": "magento2-module",
-    "license": "proprietary",
-    "version": "1.1.7",
+    "license": "MIT",
+    "version": "1.1.8",
     "require": {
         "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
         "magento/framework": "^103.0",
